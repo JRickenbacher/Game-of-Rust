@@ -1,23 +1,23 @@
-const SIZE_X: usize = 40;
-const SIZE_Y: usize = 20;
+const SIZE_X: usize = 100;
+const SIZE_Y: usize = 23;
 const DIRECTIONS: [[isize; 2]; 8] = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,1], [-1,-1],];
+const INITIALSTATES:[[usize; 2]; 20] = [[9, 50], [10, 49], [10, 51], [11, 49], [11, 51], [12, 50], [13, 49], [13, 51],
+                                        [9,45], [9,46], [10,45], [9,55], [9,54], [10,55],
+                                        [15,45], [16,45], [16,46], [15,55], [16,55], [16,54],];
 
-type BOARD_T = [[bool;SIZE_X]; SIZE_Y];
+type BoardT = [[bool;SIZE_X]; SIZE_Y];
 
 fn main() {
-    let mut board: BOARD_T = [[false; SIZE_X as usize]; SIZE_Y as usize];
-    board[14][14] = true;
-    board[15][15] = true;
-    board[16][16] = true;
-    board[14][15] = true;
-    board[15][16] = true;
-    board[16][17] = true;
-    board[11][15] = true;
-    board[13][16] = true;
-    board[14][17] = true;
-    board[13][15] = true;
-    board[18][16] = true;
-    board[17][17] = true;
+    // unsafe{
+    //     let t: libc::termios;
+    //     // libc::tcgetattr(fd, optional_actions, termios)
+    //     libc::tcsetattr(libc::STDOUT_FILENO, libc::TCSANOW, &t);
+    // }
+    
+    let mut board: BoardT = [[false; SIZE_X as usize]; SIZE_Y as usize];
+    for init_state in INITIALSTATES.iter(){
+        board[init_state[0]+3][init_state[1]] = true;
+    }
     loop {
         print_board(&board);
         board = update_board(board);
@@ -30,8 +30,8 @@ fn main() {
     }
 }
 
-fn update_board(board: BOARD_T) -> BOARD_T {
-    let mut new_board: BOARD_T = [[false; SIZE_X as usize]; SIZE_Y as usize];
+fn update_board(board: BoardT) -> BoardT {
+    let mut new_board: BoardT = [[false; SIZE_X as usize]; SIZE_Y as usize];
     for (row_idx, row) in board.iter().enumerate(){
         for (col_idx, cell) in row.iter().enumerate() {
             let count = count_living_neighbors(board, row_idx, col_idx);
@@ -41,43 +41,28 @@ fn update_board(board: BOARD_T) -> BOARD_T {
     return new_board;
 }
 
-fn count_living_neighbors(board: BOARD_T, curr_row: usize, curr_col: usize) -> u8 {
+fn count_living_neighbors(board: BoardT, curr_row: usize, curr_col: usize) -> u8 {
     let mut count: u8 = 0;
     for direction in DIRECTIONS.iter() {
-        
         count += match (curr_row + 1, direction[0], curr_col + 1, direction[1]) {
             (1, -1, _, _) | (SIZE_Y, 1, _, _) | (_, _, 1, -1) | (_, _, SIZE_X, 1) => 0,
             _ => if board[(curr_row as isize + direction[0]) as usize][(curr_col as isize + direction[1]) as usize] {1} else {0},
         };
-
-        // if (curr_row == 0 && direction[0] == -1) {
-        //     continue;
-        // }
-        // if (curr_row == 0 && next_row == -1) {
-        //     continue;
-        // }
-        // let (next_row, overflow_row) = curr_row.overflowing_add_signed(direction[0]);
-        // let (next_col, overflow_col) = curr_col.overflowing_add_signed(direction[1]);
-        // if (next_row != -1 && next_row != SIZE_Y as i8) && (next_col != -1 && next_col != SIZE_X as i8) && board[next_row.abs()][next_col] {
-            
-        // }
     }
-
     return count
 }
 
-fn print_board(board: &BOARD_T) {
-    println!("|=========================================================================|");
+fn print_board(board: &BoardT) {
     for row in board.iter(){
-        print!("|");
+        print!("\x1B[0;30m|");
         for cell in row.iter() {
             if *cell {
-                print!("X");
+                print!("\x1B[0;33mX\x1B[0;30m");
             } else {
                 print!(" ");
             }
         }
         println!("|");
     }
-    println!("|=========================================================================|");
+    print!("\x1B[{}A", SIZE_Y + 1);
 }
